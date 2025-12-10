@@ -504,8 +504,30 @@ export default function AdminPage() {
             setIsLeaderboardVisible(visibilityData.leaderboardVisible);
           }
 
-          setPersonalUsers(Array.isArray(personalData) ? personalData : []);
-          setGroupUsers(Array.isArray(groupData) ? groupData : []);
+          // 🛑 תיקון: מיון (Sort) הנתונים האישיים לפי ניקוד
+          if (Array.isArray(personalData)) {
+            personalData.sort((a, b) => {
+              const scoreA = a.totalPoints ?? a.score ?? 0;
+              const scoreB = b.totalPoints ?? b.score ?? 0;
+              return scoreB - scoreA;
+            });
+            setPersonalUsers(personalData);
+          } else {
+            setPersonalUsers([]);
+          }
+
+          // 🛑 תיקון: מיון (Sort) הנתונים הקבוצתיים לפי ניקוד
+          if (Array.isArray(groupData)) {
+            groupData.sort((a, b) => {
+              const scoreA = a.totalPoints ?? a.score ?? 0;
+              const scoreB = b.totalPoints ?? b.score ?? 0;
+              return scoreB - scoreA;
+            });
+            setGroupUsers(groupData);
+          } else {
+            setGroupUsers([]);
+          }
+
           setTopUsersPerTeam(Array.isArray(topUsersData) ? topUsersData : []);
         }
       } catch (err) {

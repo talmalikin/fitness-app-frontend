@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { THEME } from "../theme.js";
 
+// הכתובת של השרת שלך
 const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 
 const LoginRegisterServer = () => {
@@ -15,7 +16,9 @@ const LoginRegisterServer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const endpoint = isLogin ? "/login" : "/register";
+
+    // 🛑 השינוי הגדול כאן: הוספנו את הקידומת /auth
+    const endpoint = isLogin ? "/auth/login" : "/auth/register";
 
     const payload = isLogin
       ? { name: username, password }
@@ -35,6 +38,10 @@ const LoginRegisterServer = () => {
 
         // שמירת המשתמש ב-localStorage
         localStorage.setItem("user", JSON.stringify(data.user));
+        // שמירת הטוקן (אם השרת מחזיר אותו) לשימוש עתידי
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
 
         // מעבר לעמוד הבית
         navigate("/home");

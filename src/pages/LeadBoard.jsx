@@ -26,6 +26,7 @@ const BRAND_THEME = {
   crownColor: "#FFC72C",
 };
 
+// הכתובת של השרת שלך
 const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 
 // --- פונקציה לצבע לפי שם ---
@@ -444,8 +445,20 @@ export default function LeadBoard() {
             ? `${SERVER_URL}/leaderboard/personal`
             : `${SERVER_URL}/leaderboard/group`;
         const res = await fetch(endpoint);
-        const data = await res.json();
-        setUsers(Array.isArray(data) ? data : []);
+        let data = await res.json();
+
+        if (Array.isArray(data)) {
+          // 🛑 תיקון: מיון המערך לפי הניקוד (מהגדול לקטן)
+          data.sort((a, b) => {
+            const scoreA = a.totalPoints ?? a.score ?? 0;
+            const scoreB = b.totalPoints ?? b.score ?? 0;
+            return scoreB - scoreA;
+          });
+
+          setUsers(data);
+        } else {
+          setUsers([]);
+        }
       } catch (err) {
         console.error("Failed to fetch leaderboard:", err);
         setUsers([]);
@@ -482,6 +495,7 @@ export default function LeadBoard() {
       .slice(3)
       .map((user, index) => ({ ...user, rank: index + 4 }));
   } else {
+    // בדירוג קבוצתי, כולם מופיעים ברשימה למטה לפי הסדר החדש (הממוין)
     listDisplay = users.map((user, index) => ({ ...user, rank: index + 1 }));
     topDisplay = [];
   }

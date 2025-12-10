@@ -12,7 +12,6 @@ const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 
 // --- רכיב ActionButton ---
 const ActionButton = React.memo(({ onClick, color, label }) => {
-  // ... (לוגיקת אנימציה נשארת כפי שהייתה, עטפנו ב-React.memo)
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const scale = isPressed ? 0.9 : isHovered ? 1.1 : 1;
@@ -151,6 +150,82 @@ const DoubleRingProgress = React.memo(({ points }) => (
   </div>
 ));
 
+// --- 🔥 רכיב חדש: ManualEntry (הוספה ידנית) ---
+const ManualEntry = ({ label, onManualAdd, isLoading }) => {
+  const [amount, setAmount] = useState("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const value = parseInt(amount, 10);
+    // מאפשרים גם מספרים שליליים אם רוצים להוריד ידנית הרבה
+    if (!isNaN(value) && value !== 0) {
+      onManualAdd(value);
+      setAmount(""); // איפוס השדה אחרי השליחה
+    }
+  };
+
+  return (
+    <div
+      style={{
+        marginTop: "20px",
+        padding: "20px",
+        backgroundColor: "white",
+        borderRadius: "20px",
+        boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "14px",
+          color: THEME.textGrey,
+          marginBottom: "10px",
+          fontWeight: "bold",
+        }}
+      >
+        הוספה ידנית ל: <span style={{ color: THEME.textDark }}>{label}</span>
+      </div>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", gap: "10px", justifyContent: "center" }}
+      >
+        <input
+          type="number"
+          placeholder="כמות"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          disabled={isLoading}
+          style={{
+            padding: "10px",
+            borderRadius: "10px",
+            border: "1px solid #ddd",
+            width: "80px",
+            textAlign: "center",
+            fontSize: "16px",
+            outline: "none",
+          }}
+        />
+        <button
+          type="submit"
+          disabled={isLoading || !amount}
+          style={{
+            padding: "10px 20px",
+            borderRadius: "10px",
+            border: "none",
+            backgroundColor: isLoading || !amount ? "#ccc" : THEME.buttonBg,
+            color: "white",
+            fontWeight: "bold",
+            cursor: isLoading || !amount ? "not-allowed" : "pointer",
+            transition: "background 0.3s",
+          }}
+        >
+          {isLoading ? "..." : "הוסף"}
+        </button>
+      </form>
+    </div>
+  );
+};
+
 export default function Home() {
   const [logs, setLogs] = useState({});
   const [totalPoints, setTotalPoints] = useState(0);
@@ -158,8 +233,9 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
 
   const storedUser = JSON.parse(localStorage.getItem("user"));
-  const userId = storedUser?._id; // 1. פונקציית טעינת נתונים מרכזית (אחראית לסנכרון מלא עם השרת)
+  const userId = storedUser?._id;
 
+  // 1. פונקציית טעינת נתונים מרכזית
   const fetchAndSetAllData = useCallback(async () => {
     if (!userId) return;
 
@@ -173,7 +249,7 @@ export default function Home() {
       const [workoutsData, pointsData] = await Promise.all([
         workoutsRes.json(),
         pointsRes.json(),
-      ]); // עדכון לוגים (תוך תרגום המפתחות)
+      ]);
 
       const exerciseTotals = Object.keys(workoutsData.exercises || {}).reduce(
         (acc, key) => {
@@ -190,16 +266,18 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  }, [userId]); // תלויות: userId // 2. טעינה ראשונית
+  }, [userId]);
 
+  // 2. טעינה ראשונית
   useEffect(() => {
     fetchAndSetAllData();
-  }, [fetchAndSetAllData]); // 3. פונקציה גנרית לטיפול בעדכון שרת
+  }, [fetchAndSetAllData]);
 
+  // 3. פונקציה גנרית לטיפול בעדכון שרת
   const handleUpdate = useCallback(
     async (amount) => {
       if (!userId || isLoading) return;
-      if (amount < 0 && (logs[selectedType] || 0) <= 0) return; // 🛑 הוספת isLoading זמני כדי למנוע לחיצות כפולות בזמן שליחת הבקשה
+      if (amount < 0 && (logs[selectedType] || 0) <= 0) return;
 
       setIsLoading(true);
 
@@ -214,24 +292,24 @@ export default function Home() {
           }),
         });
         if (res.ok) {
-          // לאחר הצלחה, מבצעים טעינה מחדש מלאה כדי לסנכרן את ה-UI
           await fetchAndSetAllData();
         } else {
           const data = await res.json();
           console.error("Server Error:", data.message || res.statusText);
-          setIsLoading(false); // במקרה של כישלון, משחררים את ה-Loading
+          setIsLoading(false);
         }
       } catch (err) {
         console.error("Network error:", err);
-        setIsLoading(false); // במקרה של כישלון רשת, משחררים
+        setIsLoading(false);
       }
     },
     [userId, selectedType, logs, isLoading, fetchAndSetAllData]
   );
 
   const handleAdd = () => handleUpdate(1);
-  const handleMinus = () => handleUpdate(-1); // 4. עיבוד הנתונים והרנדור
+  const handleMinus = () => handleUpdate(-1);
 
+  // 4. עיבוד הנתונים והרנדור
   const getWorkoutLabel = (key) => {
     switch (key) {
       case "climb":
@@ -264,6 +342,13 @@ export default function Home() {
             onMinus={handleMinus}
           />
         ))}
+
+        {/* 🔥 כאן הוספנו את החלק של ההקלדה הידנית */}
+        <ManualEntry
+          label={getWorkoutLabel(selectedType)}
+          onManualAdd={(amount) => handleUpdate(amount)}
+          isLoading={isLoading}
+        />
       </div>
     </MobileLayout>
   );

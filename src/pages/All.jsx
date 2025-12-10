@@ -244,7 +244,7 @@ export default function ALL() {
                 textAlign: "right",
               }}
             >
-              ביצוע אחרון
+              התקדמות
             </h3>
 
             <div

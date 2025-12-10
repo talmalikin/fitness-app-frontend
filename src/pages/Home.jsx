@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { THEME, workoutTypes } from "../theme.js";
 import MobileLayout from "../components/MobileLayout.jsx";
 
@@ -150,17 +151,16 @@ const DoubleRingProgress = React.memo(({ points }) => (
   </div>
 ));
 
-// --- 🔥 רכיב חדש: ManualEntry (הוספה ידנית) ---
+// --- רכיב ManualEntry ---
 const ManualEntry = ({ label, onManualAdd, isLoading }) => {
   const [amount, setAmount] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const value = parseInt(amount, 10);
-    // מאפשרים גם מספרים שליליים אם רוצים להוריד ידנית הרבה
     if (!isNaN(value) && value !== 0) {
       onManualAdd(value);
-      setAmount(""); // איפוס השדה אחרי השליחה
+      setAmount("");
     }
   };
 
@@ -231,11 +231,13 @@ export default function Home() {
   const [totalPoints, setTotalPoints] = useState(0);
   const [selectedType, setSelectedType] = useState("climb");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
+  // שליפת המשתמש
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const userId = storedUser?._id;
 
-  // 1. פונקציית טעינת נתונים מרכזית
+  // 1. פונקציית טעינת נתונים (useCallback חייב להיות כאן, לפני ה-Return)
   const fetchAndSetAllData = useCallback(async () => {
     if (!userId) return;
 
@@ -268,12 +270,14 @@ export default function Home() {
     }
   }, [userId]);
 
-  // 2. טעינה ראשונית
+  // 2. useEffect חייב להיות כאן
   useEffect(() => {
-    fetchAndSetAllData();
-  }, [fetchAndSetAllData]);
+    if (userId) {
+      fetchAndSetAllData();
+    }
+  }, [fetchAndSetAllData, userId]);
 
-  // 3. פונקציה גנרית לטיפול בעדכון שרת
+  // 3. handleUpdate חייב להיות כאן
   const handleUpdate = useCallback(
     async (amount) => {
       if (!userId || isLoading) return;
@@ -309,7 +313,6 @@ export default function Home() {
   const handleAdd = () => handleUpdate(1);
   const handleMinus = () => handleUpdate(-1);
 
-  // 4. עיבוד הנתונים והרנדור
   const getWorkoutLabel = (key) => {
     switch (key) {
       case "climb":
@@ -321,6 +324,58 @@ export default function Home() {
     }
   };
 
+  // 🔥 בדיקת אבטחה: העברנו את זה לפה - אחרי שכל ה-Hooks הוגדרו!
+  if (!storedUser || !userId) {
+    return (
+      <MobileLayout title="גישה נדחתה" subtitle="אורח">
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "60vh",
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "60px",
+              marginBottom: "20px",
+            }}
+          >
+            🔒
+          </div>
+          <h2 style={{ color: THEME.textDark, marginBottom: "10px" }}>
+            אינך מחובר למערכת
+          </h2>
+          <p style={{ color: THEME.textGrey, marginBottom: "30px" }}>
+            על מנת לצפות בנתונים ולבצע פעולות, עליך להתחבר לחשבונך
+            ב-pakal.online
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            style={{
+              padding: "15px 30px",
+              backgroundColor: THEME.buttonBg,
+              color: "white",
+              border: "none",
+              borderRadius: "25px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            }}
+          >
+            עבור למסך התחברות
+          </button>
+        </div>
+      </MobileLayout>
+    );
+  }
+
+  // --- ה-Return הראשי (רק אם המשתמש מחובר) ---
   return (
     <MobileLayout
       title={storedUser ? `${storedUser.name}'s Dashboard` : "Dashboard"}
@@ -343,7 +398,6 @@ export default function Home() {
           />
         ))}
 
-        {/* 🔥 כאן הוספנו את החלק של ההקלדה הידנית */}
         <ManualEntry
           label={getWorkoutLabel(selectedType)}
           onManualAdd={(amount) => handleUpdate(amount)}

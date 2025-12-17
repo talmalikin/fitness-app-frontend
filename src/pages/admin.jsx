@@ -806,7 +806,6 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* 🛑 --- המתג (ON/OFF) בתחתית --- */}
         <div
           style={{
             position: "fixed",
@@ -819,7 +818,6 @@ export default function AdminPage() {
             boxSizing: "border-box",
             zIndex: 1000,
 
-            // 🛠 תיקון: הפיכת הבלוק הפיקסלי ללבן ואטום
             backgroundColor: THEME.cardWhite,
             padding: "10px 0 20px 0",
             boxShadow: "0 -2px 10px rgba(0, 0, 0, 0.1)",

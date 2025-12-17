@@ -26,8 +26,15 @@ const BRAND_THEME = {
   crownColor: "#FFC72C",
 };
 
-// הכתובת של השרת שלך
 const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
+
+// 🛑 פונקציית עזר חדשה: המרת מספר צוות לשם תצוגה
+const getTeamLabel = (teamNum) => {
+  // המרה למספר למקרה שזה מגיע כמחרוזת
+  const num = Number(teamNum);
+  if (num === 5) return "סגל"; 
+  return `צוות ${teamNum ?? "?"}`;
+};
 
 // --- פונקציה לצבע לפי שם ---
 const getColorForUser = (name) => {
@@ -48,13 +55,17 @@ const getColorForUser = (name) => {
 const getUserDisplayInfo = (user, activeTab) => {
   const isPersonal = activeTab === "personal";
 
+  // חילוץ מספר הצוות בצורה בטוחה
+  const teamNum = user.teamNumber || user.team || "?";
+
+  // 🛑 שינוי: שימוש ב-getTeamLabel לתצוגה
   const displayName = isPersonal
     ? user.name || "לא ידוע"
-    : `צוות ${user.teamNumber ?? "??"}`;
+    : getTeamLabel(teamNum);
 
   const initials = isPersonal
     ? (user.name?.substring(0, 2) ?? "??").toUpperCase()
-    : `T${user.teamNumber ?? "??"}`;
+    : (Number(teamNum) === 5 ? "סגל" : `T${teamNum}`); // איניציאלים מיוחדים לסגל
 
   const leaderName = user.leadingUserName || user.name || "מוביל לא ידוע";
   const leaderInitials = (leaderName?.substring(0, 2) ?? "??").toUpperCase();
@@ -72,6 +83,7 @@ const getUserDisplayInfo = (user, activeTab) => {
     leaderInitials,
     leaderInitialBg,
     totalPoints: score,
+    teamNum, // מחזירים גם את המספר הנקי לשימוש בקומפוננטות אחרות
   };
 };
 
@@ -319,7 +331,8 @@ const TopTeamSquares = React.memo(({ topUsers }) => {
       }}
     >
       {topUsers.map((user, index) => {
-        const { leaderName, leaderInitials, leaderInitialBg, totalPoints } =
+        // פירוק המשתנים ושימוש ב-teamNum
+        const { leaderName, leaderInitials, leaderInitialBg, totalPoints, teamNum } =
           getUserDisplayInfo(user, "group");
 
         return (
@@ -369,6 +382,18 @@ const TopTeamSquares = React.memo(({ topUsers }) => {
                 direction: "rtl",
               }}
             >
+              {/* 🛑 תצוגת שם הצוות (סגל או צוות X) */}
+              <div
+                style={{
+                  fontSize: "10px",
+                  color: THEME.textGrey,
+                  fontWeight: "bold",
+                  lineHeight: "1.2",
+                }}
+              >
+                {getTeamLabel(teamNum)}
+              </div>
+
               <div
                 style={{
                   fontWeight: "bold",
@@ -377,6 +402,7 @@ const TopTeamSquares = React.memo(({ topUsers }) => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
+                  lineHeight: "1.2",
                 }}
               >
                 {leaderName}
@@ -387,6 +413,7 @@ const TopTeamSquares = React.memo(({ topUsers }) => {
                   fontSize: "11px",
                   color: BRAND_THEME.pointsBadge,
                   fontWeight: "bold",
+                  lineHeight: "1.2",
                 }}
               >
                 {totalPoints} נק'
@@ -448,13 +475,12 @@ export default function LeadBoard() {
         let data = await res.json();
 
         if (Array.isArray(data)) {
-          // 🛑 תיקון: מיון המערך לפי הניקוד (מהגדול לקטן)
+          // מיון הנתונים מהגדול לקטן
           data.sort((a, b) => {
             const scoreA = a.totalPoints ?? a.score ?? 0;
             const scoreB = b.totalPoints ?? b.score ?? 0;
             return scoreB - scoreA;
           });
-
           setUsers(data);
         } else {
           setUsers([]);
@@ -495,7 +521,6 @@ export default function LeadBoard() {
       .slice(3)
       .map((user, index) => ({ ...user, rank: index + 4 }));
   } else {
-    // בדירוג קבוצתי, כולם מופיעים ברשימה למטה לפי הסדר החדש (הממוין)
     listDisplay = users.map((user, index) => ({ ...user, rank: index + 1 }));
     topDisplay = [];
   }
@@ -503,16 +528,15 @@ export default function LeadBoard() {
   const topAreaHeight = activeTab === "group" ? "30px" : "150px";
   const topAreaPaddingBottom = activeTab === "group" ? "10px" : "40px";
 
-  // --- תיקון עיצובי: מיקום קבוע כדי להסתיר את ה-MobileLayout Header ---
+  // --- סגנונות ---
 
   const mainContainerStyle = {
-    // 🛑 שימוש ב-position: fixed כדי לכסות את כל המסך
     position: "fixed",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    zIndex: 9999, // מוודא שזה מעל הכותרת של MobileLayout
+    zIndex: 9999,
     backgroundColor: BRAND_THEME.mainBg,
     display: "flex",
     flexDirection: "column",
@@ -520,24 +544,16 @@ export default function LeadBoard() {
   };
 
   const listContainerStyles = {
-    flex: 1, // לוקח את כל המקום הפנוי
-    overflowY: "auto", // מאפשר גלילה פנימית
+    flex: 1,
+    overflowY: "auto",
     WebkitOverflowScrolling: "touch",
-    // 🛑 שינוי כאן: הגדלנו את ה-padding למטה ל-90px
-    // (70px גובה ה-Toolbar + 20px רווח)
     padding: "0 15px 90px 15px",
   };
 
   if (isLoading) {
     return (
       <MobileLayout title="טוען..." headerColor={BRAND_THEME.top3Bg}>
-        <div
-          style={{
-            textAlign: "center",
-            padding: "50px",
-            color: BRAND_THEME.textDark,
-          }}
-        >
+        <div style={{ textAlign: "center", padding: "50px", color: BRAND_THEME.textDark }}>
           טוען הגדרות...
         </div>
       </MobileLayout>
@@ -551,49 +567,27 @@ export default function LeadBoard() {
         headerColor={BRAND_THEME.top3Bg}
         subtitleColor={BRAND_THEME.textLight}
       >
-        {/* גם כאן נשתמש ב-Fixed כדי להסתיר אם הדף חסום */}
         <div
           style={{
             position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
-            backgroundColor: BRAND_THEME.mainBg,
-            padding: "20px",
+            top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999,
+            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center",
+            backgroundColor: BRAND_THEME.mainBg, padding: "20px",
           }}
         >
           <div
             style={{
-              width: "100px",
-              height: "100px",
-              borderRadius: "50%",
+              width: "100px", height: "100px", borderRadius: "50%",
               backgroundColor: BRAND_THEME.top3Bg,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "20px",
-              boxShadow: "0 8px 15px rgba(0, 0, 0, 0.2)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              marginBottom: "20px", boxShadow: "0 8px 15px rgba(0, 0, 0, 0.2)",
             }}
           >
             <span style={{ fontSize: "48px", color: BRAND_THEME.crownColor }}>
               &#128274;
             </span>
           </div>
-          <h3
-            style={{
-              color: BRAND_THEME.top3Bg,
-              marginBottom: "60px",
-              fontSize: "20px",
-              fontWeight: "bold",
-            }}
-          >
+          <h3 style={{ color: BRAND_THEME.top3Bg, marginBottom: "60px", fontSize: "20px", fontWeight: "bold" }}>
             הדירוג חסום לצפייה
           </h3>
         </div>
@@ -602,19 +596,11 @@ export default function LeadBoard() {
   }
 
   return (
-    <MobileLayout
-      title=""
-      subtitle=""
-      headerColor={BRAND_THEME.top3Bg}
-      subtitleColor={BRAND_THEME.textLight}
-    >
-      {/* העוטף הראשי שיושב מעל הכל */}
+    <MobileLayout title="" subtitle="" headerColor={BRAND_THEME.top3Bg} subtitleColor={BRAND_THEME.textLight}>
       <div style={mainContainerStyle}>
-        {/* חלק עליון (ירוק) */}
         <div
           style={{
             backgroundColor: BRAND_THEME.top3Bg,
-            // 🛑 הוספנו padding עליון כדי שהטקסט לא יידבק לקצה המסך (כי עכשיו אין Header)
             padding: `40px 0 ${topAreaPaddingBottom} 0`,
             flexShrink: 0,
             position: "relative",
@@ -626,13 +612,8 @@ export default function LeadBoard() {
         >
           <h3
             style={{
-              margin: "0 0 10px",
-              color: BRAND_THEME.textLight,
-              fontSize: "18px",
-              textAlign: "center",
-              letterSpacing: "2px",
-              fontWeight: "bold",
-              textTransform: "uppercase",
+              margin: "0 0 10px", color: BRAND_THEME.textLight, fontSize: "18px", textAlign: "center",
+              letterSpacing: "2px", fontWeight: "bold", textTransform: "uppercase",
             }}
           >
             LEADERBOARD
@@ -642,22 +623,14 @@ export default function LeadBoard() {
 
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              padding: "0 15px",
-              height: topAreaHeight,
-              direction: "rtl",
+              display: "flex", justifyContent: "space-between", alignItems: "flex-end",
+              padding: "0 15px", height: topAreaHeight, direction: "rtl",
               transition: "height 0.3s ease-in-out",
             }}
           >
             {topDisplay.map((user) => (
               <TopUserCircle
-                key={
-                  activeTab === "personal"
-                    ? user._id || `top-${user.rank}`
-                    : user.teamNumber || `top-${user.rank}`
-                }
+                key={activeTab === "personal" ? user._id || `top-${user.rank}` : user.teamNumber || `top-${user.rank}`}
                 user={user}
                 rank={user.rank}
                 activeTab={activeTab}
@@ -666,36 +639,21 @@ export default function LeadBoard() {
           </div>
         </div>
 
-        {/* חלק תחתון (לבן) - גולל */}
         <div style={listContainerStyles}>
           <h3
             style={{
-              marginTop: activeTab === "group" ? "10px" : "30px",
-              marginBottom: "10px",
-              color: BRAND_THEME.textDark,
-              fontSize: "16px",
-              fontWeight: "bold",
-              textAlign: "right",
+              marginTop: activeTab === "group" ? "10px" : "30px", marginBottom: "10px",
+              color: BRAND_THEME.textDark, fontSize: "16px", fontWeight: "bold", textAlign: "right",
               transition: "margin-top 0.3s ease-in-out",
             }}
           >
             דירוג {activeTab === "personal" ? "כללי" : "קבוצות"}
           </h3>
 
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: activeTab === "personal" ? "12px" : "8px",
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "column", gap: activeTab === "personal" ? "12px" : "8px" }}>
             {listDisplay.map((item, _) => (
               <LeaderboardItem
-                key={
-                  activeTab === "personal"
-                    ? item._id || `rest-${item.rank}`
-                    : item.teamNumber || `rest-${item.rank}`
-                }
+                key={activeTab === "personal" ? item._id || `rest-${item.rank}` : item.teamNumber || `rest-${item.rank}`}
                 item={item}
                 rank={item.rank}
                 activeTab={activeTab}
@@ -707,15 +665,8 @@ export default function LeadBoard() {
 
           {activeTab === "group" && topUsersPerTeam.length > 0 && (
             <div style={{ marginTop: "20px", paddingBottom: "30px" }}>
-              <h3
-                style={{
-                  marginBottom: "10px",
-                  color: BRAND_THEME.textDark,
-                  textAlign: "right",
-                  fontWeight: "bold",
-                }}
-              >
-                מצטיינים מכל צוות
+              <h3 style={{ marginBottom: "10px", color: BRAND_THEME.textDark, textAlign: "right", fontWeight: "bold" }}>
+                🌟 מצטיינים מכל צוות
               </h3>
               <TopTeamSquares topUsers={topUsersPerTeam} />
             </div>

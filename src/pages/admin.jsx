@@ -31,6 +31,13 @@ const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 
 // --- פונקציות עזר ---
 
+// 🛑 פונקציית עזר חדשה: המרת מספר צוות לשם תצוגה
+const getTeamLabel = (teamNum) => {
+  const num = Number(teamNum);
+  if (num === 5) return "סגל";
+  return `צוות ${teamNum ?? "?"}`;
+};
+
 const getColorForUser = (name) => {
   let hash = 0;
   if (!name) return "#AAAAAA";
@@ -48,13 +55,17 @@ const getColorForUser = (name) => {
 const getUserDisplayInfo = (user, activeTab) => {
   const isPersonal = activeTab === "personal";
 
+  // חילוץ מספר הצוות
+  const teamNum = user.teamNumber || user.team || "?";
+
+  // 🛑 שינוי: שימוש ב-getTeamLabel
   const displayName = isPersonal
     ? user.name || "לא ידוע"
-    : `צוות ${user.teamNumber ?? "??"}`;
+    : getTeamLabel(teamNum);
 
   const initials = isPersonal
     ? (user.name?.substring(0, 2) ?? "??").toUpperCase()
-    : `T${user.teamNumber ?? "??"}`;
+    : (Number(teamNum) === 5 ? "סגל" : `T${teamNum}`); // איניציאלים לסגל
 
   const leaderName = user.leadingUserName || user.name || "מוביל לא ידוע";
   const initialBg = getColorForUser(displayName);
@@ -69,6 +80,7 @@ const getUserDisplayInfo = (user, activeTab) => {
     leaderInitials: (leaderName?.substring(0, 2) ?? "??").toUpperCase(),
     leaderInitialBg: getColorForUser(leaderName),
     totalPoints: score,
+    teamNum, // מחזירים גם את המספר הנקי
   };
 };
 
@@ -253,7 +265,7 @@ const LeaderboardItem = ({
   );
 };
 
-// --- קומפוננטת TopTeamSquares (ללא שינוי) ---
+// --- קומפוננטת TopTeamSquares ---
 const TopTeamSquares = ({ topUsers, style }) => {
   const displayUsers = topUsers;
 
@@ -268,7 +280,8 @@ const TopTeamSquares = ({ topUsers, style }) => {
         }}
       >
         {displayUsers.map((user, index) => {
-          const { leaderName, leaderInitials, leaderInitialBg } =
+          // 🛑 שליפה גם של teamNum
+          const { leaderName, leaderInitials, leaderInitialBg, teamNum } =
             getUserDisplayInfo(user, "group");
 
           return (
@@ -321,6 +334,19 @@ const TopTeamSquares = ({ topUsers, style }) => {
                   direction: "rtl",
                 }}
               >
+                {/* 🛑 הוספנו: תצוגת שם הצוות (סגל/צוות X) */}
+                <div
+                  style={{
+                    fontSize: "10px",
+                    color: THEME.textDark, // או צבע אפור כהה
+                    fontWeight: "bold",
+                    lineHeight: "1.2",
+                    opacity: 0.7,
+                  }}
+                >
+                  {getTeamLabel(teamNum)}
+                </div>
+
                 {/* שם המוביל */}
                 <div
                   style={{
@@ -330,6 +356,7 @@ const TopTeamSquares = ({ topUsers, style }) => {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
+                    lineHeight: "1.2",
                   }}
                 >
                   {leaderName}
@@ -341,6 +368,7 @@ const TopTeamSquares = ({ topUsers, style }) => {
                     fontSize: "11px",
                     color: BRAND_THEME.pointsBadge,
                     fontWeight: "bold",
+                    lineHeight: "1.2",
                   }}
                 >
                   {user.totalPoints} נק'
@@ -472,7 +500,9 @@ export default function AdminPage() {
       }
     } catch (err) {
       console.error(`Failed to toggle leaderboard visibility:`, err);
-      alert("שגיאה: לא ניתן היה לשנות את מצב הדירוג בשרת. בדוק את חיבור הרשת.");
+      alert(
+        "שגיאה: לא ניתן היה לשנות את מצב הדירוג בשרת. בדוק את חיבור הרשת."
+      );
     }
   };
 

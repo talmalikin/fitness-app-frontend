@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 
 // --- צבעים וסגנונות (ללא שינוי) ---
 const THEME = {
-  blueDark: "#2d6a4f",
+  blueDark: "#E53935",
   bgLight: "#F4F6FA",
   cardWhite: "#FFFFFF",
   textDark: "#1E1E1E",

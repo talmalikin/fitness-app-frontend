@@ -14,7 +14,6 @@ export const THEME = {
 };
 
 export const workoutTypes = [
-  { key: "climb", label: "טיפוס", points: 10 },
   { key: "run", label: "ריצה", points: 5 },
-  { key: "up_down", label: "חזרות", points: 2 },
+  { key: "up_down", label: "שכיבות סמיכה", points: 2 },
 ];

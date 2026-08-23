@@ -314,7 +314,7 @@ export default function Home() {
 
   const getWorkoutLabel = (key) => {
     switch (key) {
-      case "climb":
+      case "up_down":
         return "שכיבות סמיכה";
       default:
         return workoutTypes.find((t) => t.key === key)?.label || key;

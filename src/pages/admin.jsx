@@ -34,7 +34,7 @@ const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 // 🛑 פונקציית עזר חדשה: המרת מספר צוות לשם תצוגה
 const getTeamLabel = (teamNum) => {
   const num = Number(teamNum);
-  if (num === 5) return "סגל";
+  if (num === 9) return "סגל";
   return `צוות ${teamNum ?? "?"}`;
 };
 

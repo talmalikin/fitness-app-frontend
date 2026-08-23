@@ -8,7 +8,7 @@ const THEME = {
   bgLight: "#F4F6FA",
   cardWhite: "#FFFFFF",
   textDark: "#1E1E1E",
-  danger: "#4CAF50",
+  danger: "#E53935",
   buttonBg: "#1b4332",
   rowBg: "#FFFFFF",
   redDanger: "#E53935",

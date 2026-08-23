@@ -386,9 +386,6 @@ export default function ALL() {
                         </td>
 
                         <td style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
-                          {w.pullups}
-                        </td>
-                        <td style={{ boxShadow: "0 2px 4px rgba(0,0,0,0.02)" }}>
                           {w.pushups}
                         </td>
 

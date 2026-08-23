@@ -32,7 +32,7 @@ const SERVER_URL = "https://fitness-app-backend-52qn.onrender.com";
 const getTeamLabel = (teamNum) => {
   // המרה למספר למקרה שזה מגיע כמחרוזת
   const num = Number(teamNum);
-  if (num === 5) return "סגל"; 
+  if (num === 9) return "סגל"; 
   return `צוות ${teamNum ?? "?"}`;
 };
 

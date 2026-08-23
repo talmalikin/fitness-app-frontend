@@ -65,7 +65,7 @@ const getUserDisplayInfo = (user, activeTab) => {
 
   const initials = isPersonal
     ? (user.name?.substring(0, 2) ?? "??").toUpperCase()
-    : (Number(teamNum) === 5 ? "סגל" : `T${teamNum}`); // איניציאלים מיוחדים לסגל
+    : (Number(teamNum) === 9 ? "סגל" : `T${teamNum}`); // איניציאלים מיוחדים לסגל
 
   const leaderName = user.leadingUserName || user.name || "מוביל לא ידוע";
   const leaderInitials = (leaderName?.substring(0, 2) ?? "??").toUpperCase();

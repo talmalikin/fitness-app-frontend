@@ -5,7 +5,6 @@ import MobileLayout from "../components/MobileLayout.jsx";
 
 // מפה לתרגום מפתחות מהשרת (pullups) ל-UI (climb)
 const TYPE_MAPPING = {
-  pullups: "climb",
   running: "run",
   pushups: "up_down",
 };
@@ -316,9 +315,7 @@ export default function Home() {
   const getWorkoutLabel = (key) => {
     switch (key) {
       case "climb":
-        return "מתח";
-      case "up_down":
-        return "מקבילים";
+        return "שכיבות סמיכה";
       default:
         return workoutTypes.find((t) => t.key === key)?.label || key;
     }

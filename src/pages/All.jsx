@@ -319,9 +319,8 @@ export default function ALL() {
                     >
                       תאריך
                     </th>
-                    <th style={{ padding: "10px", fontSize: "13px" }}>מתח</th>
                     <th style={{ padding: "10px", fontSize: "13px" }}>
-                      מקבילים
+                      שכיבות סמיכה
                     </th>
                     <th
                       style={{

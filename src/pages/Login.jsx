@@ -133,11 +133,11 @@ const LoginRegisterServer = () => {
                 color: THEME.textDark,
               }}
             >
-              <option value="1">צוות 1</option>
-              <option value="2">צוות 2</option>
-              <option value="3"> צוות 3</option>
-              <option value="4">צוות  4</option>
-              <option value="5"> סגל</option>
+              <option value="5">צוות 5</option>
+              <option value="6">צוות 6</option>
+              <option value="7"> צוות 7</option>
+              <option value="8">צוות  8</option>
+              <option value="9"> סגל</option>
 
             </select>
           )}

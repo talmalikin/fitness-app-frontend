@@ -267,19 +267,13 @@ export default function ALL() {
                 isRunning={true}
               />
               <ComparisonCard
-                title="מקבילים"
+                title="שכיבות סמיכה"
                 value={comparisonData.lastPushups}
                 diff={comparisonData.diffPushups}
                 unit="חז'"
                 lastDate={comparisonData.lastDate}
               />
-              <ComparisonCard
-                title="מתח"
-                value={comparisonData.lastPullups}
-                diff={comparisonData.diffPullups}
-                unit="חז'"
-                lastDate={comparisonData.lastDate}
-              />
+            
             </div>
           </div>
 
